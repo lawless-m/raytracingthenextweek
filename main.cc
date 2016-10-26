@@ -263,8 +263,28 @@ renderPixel(int* r, int* g, int* b, hitable_list *world, camera *cam, float i, f
 
 hitable_list*
 fillWorld(int w) {
-	(hitable*)worlds(void*)[10] = {random_scene, two_spheres, two_perlin_spheres, earth, simple_light, cornell_balls, cornell_smoke, cornell_final, final, cornell_box};
-	return worlds[w]();
+	switch(w) {}
+	case 1:
+		return random_scene();
+	case 2:
+		return two_spheres();
+	case 3:
+		return two_perlin_spheres();
+	case 4:
+		return earth();
+	case 5:
+		return cornell_balls();
+	case 6:
+		return cornell_smoke();
+	case 7:
+		return cornell_final();
+	case 8:
+		return final();
+	case 9:
+		return cornell_box();
+	case 10:
+		return simple_light();
+	}
 }
 int main() {
     int nx = 800;
