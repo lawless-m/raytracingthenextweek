@@ -261,7 +261,11 @@ renderPixel(int* r, int* g, int* b, hitable_list *world, camera *cam, float i, f
     *b = int(255.99*col[2]); 
 }
 
-
+hitable_list*
+fillWorld(int w) {
+	(hitable*)worlds(void*)[10] = {random_scene, two_spheres, two_perlin_spheres, earth, simple_light, cornell_balls, cornell_smoke, cornell_final, final, cornell_box};
+	return worlds[w]();
+}
 int main() {
     int nx = 800;
     int ny = 800;
@@ -269,17 +273,8 @@ int main() {
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     hitable *list[5];
     float R = cos(M_PI/4);
-    //hitable *world = random_scene();
-    //hitable *world = two_spheres();
-    //hitable *world = two_perlin_spheres();
-    //hitable *world = earth();
-    //hitable *world = simple_light();
-    hitable *world = cornell_box();
-    //hitable *world = cornell_balls();
-    //hitable *world = cornell_smoke();
-    //hitable *world = cornell_final();
-    //hitable *world = final();
-
+    hitable *world = fillWorld(10);
+    
     vec3 lookfrom(278, 278, -800);
     //vec3 lookfrom(478, 278, -600);
     vec3 lookat(278,278,0);
