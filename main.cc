@@ -16,21 +16,6 @@
 #include "stb_image.h"
 
 
-vec3 color(const ray& r, hitable *world, int depth) {
-    hit_record rec;
-    if (world->hit(r, 0.001, MAXFLOAT, rec)) { 
-        ray scattered;
-        vec3 attenuation;
-        vec3 emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
-        if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) 
-             return emitted + attenuation*color(scattered, world, depth+1);
-        else 
-            return emitted;
-    }
-    else 
-        return vec3(0,0,0);
-}
-
 hitable *earth() {
     int nx, ny, nn;
     //unsigned char *tex_data = stbi_load("tiled.jpg", &nx, &ny, &nn, 0);
@@ -242,25 +227,6 @@ hitable *random_scene() {
     return new bvh_node(list,i, 0.0, 1.0);
 }
 
-void
-renderPixel(int* r, int* g, int* b, hitable_list *world, camera *cam, float i, float j, float nx, float ny, int ns) {
-	vec3 col(0, 0, 0)
-	float u, v;
-	ray r;
-	for (int s=0; s < ns; s++) {
-		u = (i+mrand()) / nx;
-		v = (j+mrand()) / ny;
-		r = cam->get_ray(u, v);
-		col += color(r, world, 0);
-	}
-	col /= float(ns);
-	for(int i=0; i<3; i++)
-		col[i] = sqrt(col[i]);
-    *r = int(255.99*col[0]); 
-    *g = int(255.99*col[1]); 
-    *b = int(255.99*col[2]); 
-}
-
 hitable_list*
 fillWorld(int w) {
 	switch(w) {}
@@ -286,14 +252,49 @@ fillWorld(int w) {
 		return simple_light();
 	}
 }
+
+
+vec3
+color(const ray& r, hitable *world, int depth) {
+    hit_record rec;
+    if (world->hit(r, 0.001, MAXFLOAT, rec)) { 
+        ray scattered;
+        vec3 attenuation;
+        vec3 emitted = rec.mat_ptr->emitted(rec.u, rec.v, rec.p);
+        if (depth < 50 && rec.mat_ptr->scatter(r, rec, attenuation, scattered)) 
+             return emitted + attenuation*color(scattered, world, depth+1);
+        else 
+            return emitted;
+    }
+    else 
+        return vec3(0,0,0);
+}
+
+void
+renderPixel(int* r, int* g, int* b, hitable_list *world, camera *cam, float i, float j, float nx, float ny, int ns) {
+	vec3 col(0, 0, 0)
+	float u, v;
+	ray r;
+	for (int s=0; s < ns; s++) {
+		u = (i+mrand()) / nx;
+		v = (j+mrand()) / ny;
+		r = cam->get_ray(u, v);
+		col += color(r, world, 0);
+	}
+	col /= float(ns);
+	for(int i=0; i<3; i++)
+		col[i] = sqrt(col[i]);
+    *r = int(255.99*col[0]); 
+    *g = int(255.99*col[1]); 
+    *b = int(255.99*col[2]); 
+}
+
 int main() {
     int nx = 800;
     int ny = 800;
     int ns = 100;
-    std::cout << "P3\n" << nx << " " << ny << "\n255\n";
-    hitable *list[5];
-    float R = cos(M_PI/4);
-    hitable *world = fillWorld(10);
+
+    hitable *world = fillWorld(9);
     
     vec3 lookfrom(278, 278, -800);
     //vec3 lookfrom(478, 278, -600);
@@ -304,6 +305,7 @@ int main() {
     float aperture = 0.0;
     float vfov = 40.0;
 
+	std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     camera cam(lookfrom, lookat, vec3(0,1,0), vfov, float(nx)/float(ny), aperture, dist_to_focus, 0.0, 1.0);
 	int ir, ir, ib;
     for (int j = ny-1; j >= 0; j--) {
