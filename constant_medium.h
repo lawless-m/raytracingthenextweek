@@ -16,7 +16,7 @@ class constant_medium : public hitable  {
 };
 
 bool constant_medium::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
-    bool db = (drand48() < 0.00001);
+    bool db = (mrand() < 0.00001);
     db = false;
     hit_record rec1, rec2;
     if (boundary->hit(r, -FLT_MAX, FLT_MAX, rec1)) { 
@@ -31,7 +31,7 @@ bool constant_medium::hit(const ray& r, float t_min, float t_max, hit_record& re
             if (rec1.t < 0)
                 rec1.t = 0;
             float distance_inside_boundary = (rec2.t - rec1.t)*r.direction().length();
-            float hit_distance = -(1/density)*log(drand48()); 
+            float hit_distance = -(1/density)*log(mrand()); 
             if (hit_distance < distance_inside_boundary) {
             if (db) std::cerr << "hit_distance = " <<  hit_distance << "\n";
                 rec.t = rec1.t + hit_distance / r.direction().length(); 

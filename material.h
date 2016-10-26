@@ -35,7 +35,7 @@ vec3 reflect(const vec3& v, const vec3& n) {
 vec3 random_in_unit_sphere() {
     vec3 p;
     do {
-        p = 2.0*vec3(drand48(),drand48(),drand48()) - vec3(1,1,1);
+        p = 2.0*vec3(mrand(),mrand(),mrand()) - vec3(1,1,1);
     } while (dot(p,p) >= 1.0);
     return p;
 }
@@ -122,7 +122,7 @@ class dielectric : public material {
                 scattered = ray(rec.p, reflected);
                 reflect_prob = 1.0;
              }
-             if (drand48() < reflect_prob) {
+             if (mrand() < reflect_prob) {
                 scattered = ray(rec.p, reflected);
              }
              else {

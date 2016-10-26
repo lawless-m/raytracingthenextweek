@@ -1,4 +1,5 @@
 #include <iostream>
+#include "mrand.h"
 #include "sphere.h"
 #include "moving_sphere.h"
 #include "hitable_list.h"
@@ -63,7 +64,7 @@ hitable *final() {
             float z0 = -1000 + j*w;
             float y0 = 0;
             float x1 = x0 + w;
-            float y1 = 100*(drand48()+0.01);
+            float y1 = 100*(mrand()+0.01);
             float z1 = z0 + w;
             boxlist[b++] = new box(vec3(x0,y0,z0), vec3(x1,y1,z1), ground);
         }
@@ -89,7 +90,7 @@ hitable *final() {
     list[l++] =  new sphere(vec3(220,280, 300), 80, new lambertian( pertext ));
     int ns = 1000;
     for (int j = 0; j < ns; j++) {
-        boxlist2[j] = new sphere(vec3(165*drand48(), 165*drand48(), 165*drand48()), 10, white);
+        boxlist2[j] = new sphere(vec3(165*mrand(), 165*mrand(), 165*mrand()), 10, white);
     }
     list[l++] =   new translate(new rotate_y(new bvh_node(boxlist2,ns, 0.0, 1.0), 15), vec3(-100,270,395));
     return new hitable_list(list,l);
@@ -122,7 +123,7 @@ hitable *cornell_final() {
     list[i++] = new sphere(vec3(120, 50, 205), 50, new lambertian(pertext));
     int ns = 10000;
     for (int j = 0; j < ns; j++) {
-        boxlist[j] = new sphere(vec3(165*drand48(), 330*drand48(), 165*drand48()), 10, white);
+        boxlist[j] = new sphere(vec3(165*mrand(), 330*mrand(), 165*mrand()), 10, white);
     }
     list[i++] =   new translate(new rotate_y(new bvh_node(boxlist,ns, 0.0, 1.0), 15), vec3(265,0,295));
     */
@@ -216,15 +217,15 @@ hitable *random_scene() {
     int i = 1;
     for (int a = -10; a < 10; a++) {
         for (int b = -10; b < 10; b++) {
-            float choose_mat = drand48();
-            vec3 center(a+0.9*drand48(),0.2,b+0.9*drand48()); 
+            float choose_mat = mrand();
+            vec3 center(a+0.9*mrand(),0.2,b+0.9*mrand()); 
             if ((center-vec3(4,0.2,0)).length() > 0.9) { 
                 if (choose_mat < 0.8) {  // diffuse
-                    list[i++] = new moving_sphere(center, center+vec3(0,0.5*drand48(), 0), 0.0, 1.0, 0.2, new lambertian(new constant_texture(vec3(drand48()*drand48(), drand48()*drand48(), drand48()*drand48()))));
+                    list[i++] = new moving_sphere(center, center+vec3(0,0.5*mrand(), 0), 0.0, 1.0, 0.2, new lambertian(new constant_texture(vec3(mrand()*mrand(), mrand()*mrand(), mrand()*mrand()))));
                 }
                 else if (choose_mat < 0.95) { // metal
                     list[i++] = new sphere(center, 0.2,
-                            new metal(vec3(0.5*(1 + drand48()), 0.5*(1 + drand48()), 0.5*(1 + drand48())),  0.5*drand48()));
+                            new metal(vec3(0.5*(1 + mrand()), 0.5*(1 + mrand()), 0.5*(1 + mrand())),  0.5*mrand()));
                 }
                 else {  // glass
                     list[i++] = new sphere(center, 0.2, new dielectric(1.5));
@@ -240,6 +241,26 @@ hitable *random_scene() {
     //return new hitable_list(list,i);
     return new bvh_node(list,i, 0.0, 1.0);
 }
+
+void
+renderPixel(int* r, int* g, int* b, hitable_list *world, camera *cam, float i, float j, float nx, float ny, int ns) {
+	vec3 col(0, 0, 0)
+	float u, v;
+	ray r;
+	for (int s=0; s < ns; s++) {
+		u = (i+mrand()) / nx;
+		v = (j+mrand()) / ny;
+		r = cam->get_ray(u, v);
+		col += color(r, world, 0);
+	}
+	col /= float(ns);
+	for(int i=0; i<3; i++)
+		col[i] = sqrt(col[i]);
+    *r = int(255.99*col[0]); 
+    *g = int(255.99*col[1]); 
+    *b = int(255.99*col[2]); 
+}
+
 
 int main() {
     int nx = 800;
@@ -269,22 +290,10 @@ int main() {
     float vfov = 40.0;
 
     camera cam(lookfrom, lookat, vec3(0,1,0), vfov, float(nx)/float(ny), aperture, dist_to_focus, 0.0, 1.0);
-
+	int ir, ir, ib;
     for (int j = ny-1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {
-            vec3 col(0, 0, 0);
-            for (int s=0; s < ns; s++) {
-                float u = float(i+drand48())/ float(nx);
-                float v = float(j+drand48())/ float(ny);
-                ray r = cam.get_ray(u, v);
-                vec3 p = r.point_at_parameter(2.0);
-                col += color(r, world,0);
-            }
-            col /= float(ns);
-            col = vec3( sqrt(col[0]), sqrt(col[1]), sqrt(col[2]) );
-            int ir = int(255.99*col[0]); 
-            int ig = int(255.99*col[1]); 
-            int ib = int(255.99*col[2]); 
+			renderPixel(ir, ig, ib, world, &cam, float(i), float(j), float(nx), float(ny), ns);
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
